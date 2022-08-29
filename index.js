@@ -1,3 +1,4 @@
+const moment = require('moment');
 const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
@@ -17,7 +18,18 @@ app.use(express.json());
 const business = 'barbearia_optimus';
 const select = 'SELECT * FROM optimus WHERE business = ?;';
 
+const now = moment.utc().format('YYYY-MM-DD');
+const clear = 'DELETE FROM optimus WHERE service_date < ?;';
+
 app.get('/select', (req, res) => {
+    db.query(clear, [now], (error) => {
+        if (error) {
+            console.log(error);
+        }
+
+        console.log('delete - ok');
+    });
+
     db.query(select, [business], (error, results) => {
         if (error) {
             res.send(error);
@@ -27,4 +39,4 @@ app.get('/select', (req, res) => {
     });
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3030);
