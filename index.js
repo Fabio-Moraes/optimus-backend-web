@@ -16,26 +16,37 @@ app.use(cors());
 app.use(express.json());
 
 const business = 'barbearia_optimus';
-const select = 'SELECT * FROM optimus WHERE business = ?;';
-
 const now = moment.utc().format('YYYY-MM-DD');
+
+const select = 'SELECT * FROM optimus WHERE business = ?;';
 const clear = 'DELETE FROM optimus WHERE service_date < ?;';
 
+const checkDate = (date) => {
+    return moment.utc(date.service_date).format('YYYY-MM-DD') < now;
+}
+
 app.get('/select', (req, res) => {
-    db.query(clear, [now], (error) => {
-        if (error) {
-            console.log(error);
-        }
-
-        console.log('delete - ok');
-    });
-
     db.query(select, [business], (error, results) => {
         if (error) {
             res.send(error);
         }
 
-        res.send(JSON.stringify(results));
+        if (results.some(checkDate)) {
+            db.query(clear, [now], (error) => {
+                if (error) {
+                    res.send(error);
+                }
+            });
+
+            db.query(select, [business], (error, results) => {
+                if (error) {
+                    res.send(error);
+                }
+
+                res.send(JSON.stringify(results));
+            });
+
+        } else res.send(JSON.stringify(results));
     });
 });
 
