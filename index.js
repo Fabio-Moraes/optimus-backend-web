@@ -22,7 +22,7 @@ const select = 'SELECT * FROM optimus WHERE business = ?;';
 const clear = 'DELETE FROM optimus WHERE service_date < ?;';
 
 const checkDate = (date) => {
-    return moment.utc(date.service_date).format('YYYY-MM-DD') < now;
+    return moment.utc(date.service_date).format('YYYY-MM-DD').valueOf() < now.valueOf();
 }
 
 app.get('/select', (req, res) => {
