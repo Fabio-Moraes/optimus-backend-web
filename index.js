@@ -4,7 +4,6 @@ const mysql = require('mysql');
 const cors = require('cors');
 
 const app = express();
-
 const db = mysql.createPool({
     host: 'us-cdbr-east-05.cleardb.net',
     user: 'b6e5116b10a3f3',
@@ -15,41 +14,65 @@ const db = mysql.createPool({
 app.use(cors());
 app.use(express.json());
 
-const business = 'barbearia_optimus';
+// const business = 'barbearia_optimus';
 const now = moment.utc().format('YYYY-MM-DD');
 
-const select = 'SELECT * FROM optimus WHERE business = ?;';
-const clear = 'DELETE FROM optimus WHERE service_date < ?;';
+const selectDate = 'SELECT * FROM optimus WHERE business = ?;';
+const deleteDate = 'DELETE FROM optimus WHERE service_date < ?;';
 
-const checkDate = (date) => {
-    const dbDate = moment.utc(date.service_date).format('YYYY-MM-DD').valueOf();
-    const nowDate = moment.utc().format('YYYY-MM-DD').valueOf();
-    return Number(dbDate) < Number(nowDate);
+const checkDate = date => moment.utc(date.service_date).valueOf() < moment.utc().valueOf();
+
+const validateLogin = {
+    Optimus: {
+        password: 'cubo',
+        business: 'BARBEARIA OPTIMUS'
+    },
+
+    Fabio: {
+        password: 'Asd123',
+        business: 'SAMURAI BARBER SHOP'
+    },
+
+    James: {
+        password: 'j123',
+        business: 'BARBEARIA IRMÃO JAMES'
+    },
 }
 
-app.get('/select', (req, res) => {
-    db.query(select, [business], (error, results) => {
-        if (error) {
-            res.send(error);
-        }
+app.get('/validate', (req, res) => {
+    const { user, password } = req.query;
 
-        if (results.some(checkDate)) {
-            db.query(clear, [now], (error) => {
-                if (error) {
-                    res.send(error);
-                }
-            });
+    if (validateLogin[user]?.password === password) {
+        res.send(JSON.stringify([validateLogin[user]]))
+    } else res.send('invalid password')
 
-            db.query(select, [business], (error, results) => {
-                if (error) {
-                    res.send(error);
-                }
-
-                res.send(JSON.stringify(results));
-            });
-
-        } else res.send(JSON.stringify(results));
-    });
 });
 
-app.listen(process.env.PORT || 3030);
+app.get('/select', (req, res) => {
+    const { user, password } = req.query;
+
+    const business = validateLogin[user]?.business.toLowerCase()
+        .replace(/(\/)|(\s)/g, '_').normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    if (validateLogin[user]?.password === password) {
+        db.query(selectDate, [business], (error, results) => {
+            if (error) res.send(error);
+
+            if (results.some(checkDate)) {
+                db.query(deleteDate, [now], (error) => {
+                    if (error) res.send(error);
+                    res.send(JSON.stringify(results));
+                });
+                console.log('deleted');
+
+            } else res.send(JSON.stringify(results));
+
+            console.log('select');
+            console.log(business);
+        });
+    } else res.send('invalid password')
+
+});
+
+app.listen(process.env.PORT || 3030, () => console.log('servidor rodando'));
