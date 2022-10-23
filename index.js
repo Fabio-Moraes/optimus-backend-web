@@ -33,9 +33,9 @@ const validateLogin = {
         business: 'SAMURAI BARBER SHOP'
     },
 
-    James: {
-        password: 'j123',
-        business: 'BARBEARIA IRMÃO JAMES'
+    Greenville: {
+        password: 'ville2022',
+        business: 'BARBEARIA GREENVILLE'
     },
 }
 
