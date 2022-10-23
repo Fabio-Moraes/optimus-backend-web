@@ -34,7 +34,7 @@ const validateLogin = {
     },
 
     Greenville: {
-        password: 'ville2022',
+        password: 'Ville2022',
         business: 'BARBEARIA GREENVILLE'
     },
 }
